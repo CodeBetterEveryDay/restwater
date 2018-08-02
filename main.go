@@ -44,9 +44,9 @@ func main() {
 
 	router := mux.NewRouter()
 	router.HandleFunc("/stations", GetStations).Methods("GET")
-	router.HandleFunc("/station/{id}", GetStation).Methods("GET")
-	router.HandleFunc("/station/{id}", CreateStation).Methods("POST")
-	router.HandleFunc("/station/{id}", DeleteStation).Methods("DELETE")
+	router.HandleFunc("/stations/{id}", GetStation).Methods("GET")
+	router.HandleFunc("/stations", CreateStation).Methods("POST")
+	router.HandleFunc("/stations/{id}", DeleteStation).Methods("DELETE")
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
 
@@ -63,6 +63,22 @@ func GetStation(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func CreateStation(w http.ResponseWriter, r *http.Request) {}
+func CreateStation(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	var station Station
+	_ = json.NewDecoder(r.Body).Decode(&station)
+	station.Id = params["id"]
+	stations = append(stations, station)
+	json.NewEncoder(w).Encode(stations)
+}
 
-func DeleteStation(w http.ResponseWriter, r *http.Request) {}
+func DeleteStation(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	for i, station := range stations {
+		if station.Id == params["id"] {
+			stations = append(stations[:i], stations[i+1:]...)
+			break
+		}
+	}
+	json.NewEncoder(w).Encode(stations)
+}
